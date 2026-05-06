@@ -1,0 +1,489 @@
+/* =============================================
+   Responsive Styles for BI Dashboard
+   Mobile-First Approach
+   ============================================= */
+
+/* =======================
+   Base Container Styles
+   ======================= */
+.dashboard-container {
+    max-width: 100vw;
+    overflow-x: hidden;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+/* =======================
+   Mobile Styles (< 600px)
+   ======================= */
+@media (max-width: 599px) {
+    /* Container adjustments */
+    .dashboard-container {
+        padding: 4px !important;
+    }
+
+    /* Header adjustments */
+    .dashboard-header {
+        flex-direction: column !important;
+        gap: 8px !important;
+        padding: 8px !important;
+    }
+
+    .dashboard-header .MuiTypography-h5 {
+        font-size: 1.1rem !important;
+    }
+
+    .dashboard-header .MuiTypography-h6 {
+        font-size: 1rem !important;
+    }
+
+    /* Button groups - smaller buttons */
+    .dashboard-actions {
+        flex-wrap: wrap;
+        gap: 4px !important;
+    }
+
+    .dashboard-actions .MuiButton-root {
+        font-size: 0.7rem !important;
+        padding: 4px 8px !important;
+        min-width: 64px !important;
+    }
+
+    /* Hide button text on very small screens, show only icons */
+    .dashboard-actions .MuiButton-root .MuiButton-startIcon {
+        margin-right: 0 !important;
+    }
+
+    /* Grid layout */
+    .react-grid-layout {
+        margin: 0 !important;
+    }
+
+    .react-grid-item {
+        min-height: 180px !important;
+    }
+
+    /* Widget cards */
+    .widget-card {
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+        border-radius: 8px !important;
+    }
+
+    .widget-card .MuiTypography-h6,
+    .widget-card .MuiTypography-subtitle1 {
+        font-size: 0.8rem !important;
+    }
+
+    /* Charts */
+    .recharts-wrapper {
+        font-size: 9px !important;
+    }
+
+    .recharts-legend-wrapper {
+        font-size: 8px !important;
+    }
+
+    .recharts-cartesian-axis-tick text {
+        font-size: 9px !important;
+    }
+
+    /* Dialogs - full screen on mobile */
+    .MuiDialog-paper {
+        margin: 4px !important;
+        max-height: calc(100% - 8px) !important;
+        width: calc(100% - 8px) !important;
+        max-width: 100% !important;
+    }
+
+    .MuiDialogTitle-root {
+        padding: 8px 12px !important;
+        font-size: 1rem !important;
+    }
+
+    .MuiDialogContent-root {
+        padding: 8px 12px !important;
+    }
+
+    .MuiDialogActions-root {
+        padding: 8px !important;
+    }
+
+    /* Filter sidebar - full width on mobile */
+    .MuiDrawer-paper {
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+
+    /* Avatar and user info */
+    .MuiAvatar-root {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Chips */
+    .MuiChip-root {
+        font-size: 0.65rem !important;
+        height: 18px !important;
+    }
+
+    /* Icon buttons */
+    .MuiIconButton-root {
+        padding: 6px !important;
+    }
+
+    .MuiIconButton-root .MuiSvgIcon-root {
+        font-size: 1.2rem !important;
+    }
+
+    /* Tabs */
+    .MuiTab-root {
+        min-width: 80px !important;
+        padding: 8px 12px !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* Tables */
+    .MuiTable-root {
+        font-size: 0.75rem !important;
+    }
+
+    .MuiTableCell-root {
+        padding: 6px !important;
+        font-size: 0.75rem !important;
+    }
+}
+
+/* =======================
+   Tablet Styles (600px - 959px)
+   ======================= */
+@media (min-width: 600px) and (max-width: 959px) {
+    .dashboard-container {
+        padding: 12px !important;
+    }
+
+    .dashboard-header {
+        flex-wrap: wrap;
+        gap: 12px !important;
+        padding: 12px !important;
+    }
+
+    .dashboard-actions .MuiButton-root {
+        font-size: 0.8rem !important;
+        padding: 6px 12px !important;
+    }
+
+    .react-grid-item {
+        min-height: 220px !important;
+    }
+
+    .recharts-wrapper {
+        font-size: 11px !important;
+    }
+
+    .recharts-legend-wrapper {
+        font-size: 10px !important;
+    }
+
+    /* Filter sidebar */
+    .MuiDrawer-paper {
+        width: 320px !important;
+        max-width: 50vw !important;
+    }
+
+    /* Dialogs */
+    .MuiDialog-paper {
+        margin: 16px !important;
+        max-height: calc(100% - 32px) !important;
+    }
+}
+
+/* =======================
+   Desktop Styles (≥ 960px)
+   ======================= */
+@media (min-width: 960px) {
+    .dashboard-container {
+        padding: 16px;
+    }
+
+    .dashboard-header {
+        padding: 16px;
+    }
+
+    .react-grid-item {
+        min-height: 250px;
+    }
+}
+
+/* =======================
+   Large Desktop (≥ 1200px)
+   ======================= */
+@media (min-width: 1200px) {
+    .dashboard-container {
+        padding: 24px;
+        max-width: 1920px;
+        margin: 0 auto;
+    }
+
+    .react-grid-item {
+        min-height: 280px;
+    }
+}
+
+/* =======================
+   Landscape Mobile Orientation
+   ======================= */
+@media (max-width: 959px) and (orientation: landscape) {
+    .MuiDrawer-paper {
+        width: 280px !important;
+        max-width: 40vw !important;
+    }
+
+    .dashboard-header {
+        padding: 6px 12px !important;
+    }
+
+    .react-grid-item {
+        min-height: 160px !important;
+    }
+}
+
+/* =======================
+   Small Height Devices
+   ======================= */
+@media (max-height: 600px) {
+    .dashboard-header {
+        padding: 6px 12px !important;
+    }
+
+    .react-grid-item {
+        min-height: 150px !important;
+    }
+
+    .MuiDialog-paper {
+        max-height: 92vh !important;
+    }
+
+    .MuiDialogContent-root {
+        padding: 12px !important;
+    }
+}
+
+/* =======================
+   Touch Device Optimizations
+   ======================= */
+@media (pointer: coarse) {
+    /* Larger touch targets */
+    .MuiIconButton-root {
+        padding: 10px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
+
+    .MuiButton-root {
+        min-height: 44px !important;
+        padding: 8px 16px !important;
+    }
+
+    /* Larger drag handles */
+    .react-resizable-handle {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .react-resizable-handle::after {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    /* Better grid drag handle visibility */
+    .grid-drag-handle {
+        min-height: 44px !important;
+    }
+}
+
+/* =======================
+   Print Styles
+   ======================= */
+@media print {
+    .dashboard-header,
+    .dashboard-actions,
+    .MuiDrawer-root,
+    .react-resizable-handle,
+    .react-grid-placeholder,
+    .MuiIconButton-root,
+    .MuiButton-root {
+        display: none !important;
+    }
+
+    .react-grid-item {
+        position: static !important;
+        transform: none !important;
+        page-break-inside: avoid;
+    }
+
+    .react-grid-layout {
+        background-image: none !important;
+    }
+
+    .dashboard-container {
+        padding: 0 !important;
+    }
+
+    body {
+        background: white !important;
+    }
+}
+
+/* =======================
+   High DPI Screens
+   ======================= */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .widget-card {
+        border-width: 0.5px !important;
+    }
+
+    .react-grid-item {
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    }
+}
+
+/* =======================
+   Dark Mode Responsive Adjustments
+   ======================= */
+[data-theme="dark"] {
+    .widget-card {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .recharts-wrapper {
+        filter: brightness(0.95);
+    }
+}
+
+@media (max-width: 599px) {
+    [data-theme="dark"] .widget-card {
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
+    }
+}
+
+/* =======================
+   Accessibility - Reduced Motion
+   ======================= */
+@media (prefers-reduced-motion: reduce) {
+    .react-grid-item,
+    .react-grid-item.react-draggable-dragging,
+    .react-grid-item.react-grid-placeholder,
+    .MuiButton-root,
+    .MuiIconButton-root,
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* =======================
+   Very Small Screens (< 375px)
+   ======================= */
+@media (max-width: 374px) {
+    .dashboard-header .MuiTypography-h5 {
+        font-size: 0.95rem !important;
+    }
+
+    .dashboard-header .MuiTypography-h6 {
+        font-size: 0.85rem !important;
+    }
+
+    .MuiDrawer-paper {
+        width: 100vw !important;
+    }
+
+    .dashboard-actions .MuiButton-root {
+        padding: 4px 6px !important;
+        font-size: 0.65rem !important;
+    }
+
+    .MuiChip-root {
+        font-size: 0.6rem !important;
+        height: 16px !important;
+        padding: 0 4px !important;
+    }
+}
+
+/* =======================
+   Container Fixes for Overflow
+   ======================= */
+.MuiContainer-root {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+.react-grid-layout {
+    max-width: 100%;
+}
+
+/* =======================
+   Responsive Chart Containers
+   ======================= */
+.recharts-responsive-container {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+}
+
+@media (max-width: 599px) {
+    .recharts-responsive-container {
+        min-height: 150px !important;
+    }
+}
+
+/* =======================
+   Responsive Tables
+   ======================= */
+@media (max-width: 599px) {
+    .MuiTableContainer-root {
+        overflow-x: auto !important;
+    }
+
+    .MuiTable-root {
+        min-width: 100% !important;
+    }
+}
+
+/* =======================
+   Responsive Form Elements
+   ======================= */
+@media (max-width: 599px) {
+    .MuiTextField-root {
+        margin-bottom: 12px !important;
+    }
+
+    .MuiFormControl-root {
+        margin-bottom: 12px !important;
+    }
+
+    .MuiAutocomplete-root {
+        font-size: 0.85rem !important;
+    }
+}
+
+/* =======================
+   Grid Item Responsive Minimum Widths
+   ======================= */
+@media (max-width: 599px) {
+    .react-grid-item {
+        min-width: calc(100% / 3 - 8px) !important;
+    }
+}
+
+@media (min-width: 600px) and (max-width: 959px) {
+    .react-grid-item {
+        min-width: calc(100% / 4 - 12px) !important;
+    }
+}
+
+@media (min-width: 960px) {
+    .react-grid-item {
+        min-width: calc(100% / 12 - 16px) !important;
+    }
+}

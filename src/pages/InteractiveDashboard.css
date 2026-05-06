@@ -1,0 +1,472 @@
+/* Modern, user-friendly styles for BI Dashboard */
+
+/* =======================
+   Grid Layout Animations
+   ======================= */
+.react-grid-layout {
+    position: relative;
+    transition: height 150ms ease;
+    width: 100% !important;
+}
+
+.react-grid-item {
+    transition: none; /* Disable transition for better resize tracking */
+}
+
+.react-grid-item.react-dragging {
+    transition: none;
+    z-index: 100;
+    opacity: 0.9;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.react-grid-item.cssTransforms {
+    transition-property: transform;
+    transition-duration: 0ms;
+}
+
+.react-grid-item.resizing {
+    transition: none !important;
+    z-index: 50;
+    will-change: width, height;
+}
+
+/* Ensure resize follows cursor */
+.react-grid-item > .react-resizable-handle {
+    cursor: se-resize;
+}
+
+.react-grid-item.react-resizing {
+    transition: none !important;
+    z-index: 50;
+}
+
+.react-grid-item.react-grid-placeholder {
+    transition-duration: 100ms;
+    background: rgba(25, 118, 210, 0.15) !important;
+    border: 2px dashed rgba(25, 118, 210, 0.5) !important;
+    border-radius: 8px;
+    opacity: 1;
+}
+
+.react-grid-item img {
+    pointer-events: none;
+    user-select: none;
+}
+
+/* =======================
+   Resize Handles - Neutral Colors
+   ======================= */
+.react-grid-item > .react-resizable-handle {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+}
+
+.react-grid-item > .react-resizable-handle::after {
+    content: "";
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid rgba(25, 118, 210, 0.6);
+    border-bottom: 2px solid rgba(25, 118, 210, 0.6);
+    transition: all 0.2s ease;
+}
+
+.react-grid-item > .react-resizable-handle:hover::after {
+    border-right-color: rgba(25, 118, 210, 1);
+    border-bottom-color: rgba(25, 118, 210, 1);
+    width: 10px;
+    height: 10px;
+}
+
+.react-resizable-hide > .react-resizable-handle {
+    display: none;
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-sw {
+    bottom: 0;
+    left: 0;
+    cursor: sw-resize;
+    transform: rotate(90deg);
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-se {
+    bottom: 0;
+    right: 0;
+    cursor: se-resize;
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-nw {
+    top: 0;
+    left: 0;
+    cursor: nw-resize;
+    transform: rotate(180deg);
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-ne {
+    top: 0;
+    right: 0;
+    cursor: ne-resize;
+    transform: rotate(270deg);
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-w,
+.react-grid-item > .react-resizable-handle.react-resizable-handle-e {
+    top: 50%;
+    margin-top: -10px;
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-w {
+    left: 0;
+    cursor: w-resize;
+    transform: rotate(135deg);
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-e {
+    right: 0;
+    cursor: e-resize;
+    transform: rotate(315deg);
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-n,
+.react-grid-item > .react-resizable-handle.react-resizable-handle-s {
+    left: 50%;
+    margin-left: -10px;
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-n {
+    top: 0;
+    cursor: n-resize;
+    transform: rotate(225deg);
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-s {
+    bottom: 0;
+    cursor: s-resize;
+    transform: rotate(45deg);
+}
+
+/* =======================
+   Grid Background - Hidden by default, shown during drag/resize
+   ======================= */
+.react-grid-layout {
+    background-image: none;
+    transition: background 0.2s ease;
+}
+
+/* Show grid during drag or resize */
+.react-grid-layout.dragging-active,
+.react-grid-layout.resizing-active {
+    background-image:
+        linear-gradient(rgba(25, 118, 210, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(25, 118, 210, 0.1) 1px, transparent 1px);
+    background-size: calc(100% / 12) 60px; /* 12 columns, 60px rows */
+}
+
+/* Dark mode grid */
+[data-theme="dark"] .react-grid-layout.dragging-active,
+[data-theme="dark"] .react-grid-layout.resizing-active {
+    background-image:
+        linear-gradient(rgba(100, 181, 246, 0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(100, 181, 246, 0.15) 1px, transparent 1px);
+    background-size: calc(100% / 12) 60px;
+}
+
+/* =======================
+   Widget Cards - Modern Design
+   ======================= */
+.widget-card {
+    border-radius: 12px !important;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.widget-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+[data-theme="dark"] .widget-card {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .widget-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* =======================
+   Faster Animations
+   ======================= */
+.react-grid-item.react-grid-placeholder {
+    transition-duration: 80ms !important;
+    background: rgba(25, 118, 210, 0.12) !important;
+}
+
+.react-grid-item.react-draggable-dragging {
+    transition: none !important;
+    z-index: 100;
+}
+
+.react-grid-item.cssTransforms {
+    transition-duration: 120ms !important;
+}
+
+/* =======================
+   Dashboard Container
+   ======================= */
+.dashboard-container {
+    min-height: 100vh;
+    transition: background-color 0.3s ease;
+}
+
+/* =======================
+   Scrollbar Styling
+   ======================= */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* =======================
+   Button Improvements
+   ======================= */
+.MuiButton-root {
+    border-radius: 8px !important;
+    text-transform: none !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+
+.MuiButton-contained {
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25) !important;
+}
+
+.MuiButton-contained:hover {
+    box-shadow: 0 4px 16px rgba(25, 118, 210, 0.35) !important;
+    transform: translateY(-1px);
+}
+
+.MuiIconButton-root {
+    transition: all 0.2s ease !important;
+}
+
+.MuiIconButton-root:hover {
+    transform: scale(1.1);
+}
+
+/* =======================
+   Chip Styling
+   ======================= */
+.MuiChip-root {
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+}
+
+/* =======================
+   Paper Components
+   ======================= */
+.MuiPaper-root {
+    border-radius: 12px !important;
+}
+
+.MuiDialog-paper {
+    border-radius: 16px !important;
+}
+
+/* =======================
+   Drawer Styling
+   ======================= */
+.MuiDrawer-paper {
+    border-radius: 0 16px 16px 0 !important;
+}
+
+/* =======================
+   Card Headers
+   ======================= */
+.dashboard-header {
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+/* =======================
+   Loading & Skeleton States
+   ======================= */
+.skeleton-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* =======================
+   Focus States for Accessibility
+   ======================= */
+*:focus-visible {
+    outline: 2px solid rgba(25, 118, 210, 0.6);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* =======================
+   Smooth Transitions
+   ======================= */
+* {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =======================
+   Empty States
+   ======================= */
+.empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    opacity: 0.6;
+}
+
+/* =======================
+   Status Indicators
+   ======================= */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.status-success {
+    background-color: #4caf50;
+}
+.status-warning {
+    background-color: #ff9800;
+}
+.status-error {
+    background-color: #f44336;
+}
+.status-info {
+    background-color: #2196f3;
+}
+
+/* =======================
+   Avatar Enhancements
+   ======================= */
+.MuiAvatar-root {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.MuiAvatar-root:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: scale(1.05);
+}
+
+/* =======================
+   Modern Tooltips
+   ======================= */
+.MuiTooltip-tooltip {
+    border-radius: 8px !important;
+    font-size: 0.875rem !important;
+    padding: 8px 12px !important;
+}
+
+/* =======================
+   Card Actions
+   ======================= */
+.card-actions {
+    padding: 12px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* =======================
+   Animations
+   ======================= */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.3s ease;
+}
+
+/* =======================
+   Utility Classes
+   ======================= */
+.text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .glass-effect {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
+}
