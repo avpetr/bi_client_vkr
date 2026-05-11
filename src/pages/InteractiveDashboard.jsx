@@ -708,8 +708,8 @@ const InteractiveDashboard = () => {
                     <Paper
                         ref={gridWrapperRef}
                         sx={{
-                            // Заметный серый фон контрастирует с белыми карточками виджетов.
-                            // Тёмная тема — оставляем темный background.default.
+                            // В тёмной теме — стандартный background.default.
+                            // В светлой — заметный серый, контрастирующий с белыми виджетами.
                             bgcolor: dashboardStyle.backgroundColor
                                 || (muiTheme.palette.mode === 'dark' ? 'background.default' : '#e4e7eb'),
                             minHeight: 'calc(100vh - 180px)',

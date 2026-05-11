@@ -8,7 +8,7 @@ import PaletteIcon from '@mui/icons-material/Palette';
 
 const DashboardStyleDialog = ({ open, onClose, currentStyle, onSave }) => {
     const [style, setStyle] = useState({
-        backgroundColor: currentStyle?.backgroundColor || '#f4f6f8',
+        backgroundColor: currentStyle?.backgroundColor || '#e4e7eb',
         gridGap: currentStyle?.gridGap || 16,
         gridCols: currentStyle?.gridCols ?? 12,
         horizontalMargin: currentStyle?.horizontalMargin || 10,
@@ -34,7 +34,7 @@ const DashboardStyleDialog = ({ open, onClose, currentStyle, onSave }) => {
 
     const handleReset = () => {
         setStyle({
-            backgroundColor: '#f4f6f8',
+            backgroundColor: '#e4e7eb',
             gridGap: 16,
             gridCols: 12,
             horizontalMargin: 10,

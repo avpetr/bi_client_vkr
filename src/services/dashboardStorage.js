@@ -3,11 +3,26 @@
 const STORAGE_KEY = 'bi_dashboards';
 const CURRENT_DASHBOARD_KEY = 'bi_current_dashboard';
 
+// Старые дефолты, которые когда-то записывались автоматически. Их нужно
+// убирать при чтении — иначе фолбэк темы не сработает.
+const LEGACY_BG_DEFAULTS = new Set(['#f4f6f8', '#fafafa', '#ffffff', '#fff']);
+
+const migrateDashboard = (d) => {
+    if (d?.style?.backgroundColor && LEGACY_BG_DEFAULTS.has(d.style.backgroundColor.toLowerCase())) {
+        delete d.style.backgroundColor;
+    }
+    return d;
+};
+
 // Get all dashboards
 export const getAllDashboards = () => {
     try {
         const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
+        if (!data) return [];
+        const dashboards = JSON.parse(data).map(migrateDashboard);
+        // Перезаписываем — миграция должна быть одноразовой
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dashboards));
+        return dashboards;
     } catch (error) {
         console.error('Error loading dashboards:', error);
         return [];
@@ -64,7 +79,8 @@ export const createDashboard = (name = 'Новый дашборд') => {
         widgets: [],
         filters: {},
         style: {
-            backgroundColor: '#f4f6f8',
+            // backgroundColor намеренно не задан — фолбэк InteractiveDashboard
+            // подберёт цвет в зависимости от темы (светлая/тёмная).
             gridGap: 16,
             widgetElevation: 3,
             widgetBorderRadius: 4,
