@@ -416,6 +416,17 @@ const InteractiveDashboard = () => {
         setLayouts(exampleLayouts);
     };
 
+    // Автозагрузка примера при первом визите — пустой дашборд → грузим демо
+    // Флаг в localStorage гарантирует, что после удаления виджетов пример не вернётся
+    useEffect(() => {
+        if (localStorage.getItem('bi_example_loaded')) return;
+        if (widgets.length > 0) return;
+        if ((layouts.lg || []).length > 0) return;
+        handleLoadExample();
+        localStorage.setItem('bi_example_loaded', 'true');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // CSV upload handler
     const handleCSVUploadSuccess = (dataset) => {
         console.log('CSV uploaded successfully:', dataset);
