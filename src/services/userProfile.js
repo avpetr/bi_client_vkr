@@ -10,9 +10,9 @@ export const UserRoles = {
 
 // Default user profile
 const defaultProfile = {
-    firstName: 'Иван',
-    lastName: 'Иванов',
-    username: 'user',
+    firstName: 'Тест',
+    lastName: 'Тестов',
+    username: 'test',
     role: UserRoles.CREATOR,
     email: '',
     createdAt: new Date().toISOString()

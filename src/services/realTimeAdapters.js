@@ -44,6 +44,62 @@ export const currencyRatesDataset = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// АДАПТЕР: Курсы валют в рублях — open.er-api.com
+// Таблица «Валюта → сколько за неё дают рублей»
+// ─────────────────────────────────────────────────────────────────────────────
+
+const RUB_TARGETS = ['USD', 'EUR', 'GBP', 'CNY', 'JPY', 'CHF', 'CAD', 'AUD', 'KZT', 'TRY'];
+const CURRENCY_RU = {
+    USD: 'Доллар США',
+    EUR: 'Евро',
+    GBP: 'Фунт стерлингов',
+    CNY: 'Юань',
+    JPY: 'Иена (за 100)',
+    CHF: 'Швейцарский франк',
+    CAD: 'Канадский доллар',
+    AUD: 'Австралийский доллар',
+    KZT: 'Тенге (за 100)',
+    TRY: 'Турецкая лира',
+};
+
+export const currenciesInRubFetcher = async () => {
+    const response = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (!response.ok) throw new Error(`Exchange Rate API: ${response.status}`);
+    const raw = await response.json();
+    if (raw.result !== 'success') throw new Error('Exchange Rate API вернул ошибку');
+
+    const rubPerUsd = raw.rates.RUB;
+    if (!rubPerUsd) throw new Error('Нет курса RUB в ответе API');
+
+    return RUB_TARGETS.map(code => {
+        let rubPerOne;
+        if (code === 'USD') rubPerOne = rubPerUsd;
+        else                rubPerOne = (1 / raw.rates[code]) * rubPerUsd;
+        // JPY и KZT — низкая стоимость единицы, удобно показывать «за 100»
+        if (code === 'JPY' || code === 'KZT') rubPerOne *= 100;
+        return {
+            currency: code,
+            name:     CURRENCY_RU[code] || code,
+            rate:     parseFloat(rubPerOne.toFixed(4)),
+        };
+    });
+};
+
+export const currenciesInRubDataset = {
+    id: 'currenciesInRub',
+    name: 'Курсы валют в рублях (live)',
+    description: 'Текущая стоимость основных валют в рублях — open.er-api.com',
+    isRealTime: true,
+    sourceId: 'currenciesInRub',
+    defaultInterval: 60_000,
+    metrics: [
+        { key: 'rate',     label: 'Цена в рублях (₽)', color: '#8884d8' },
+        { key: 'currency', label: 'Код валюты',        color: '#82ca9d' },
+    ],
+    xAxisKey: 'name',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // АДАПТЕР 2: Криптовалюты — CoinCap API
 // https://api.coincap.io — реальное время, бесплатно, без ключа, CORS OK
 // Цены и изменения топ-10 криптовалют, обновляются каждые ~30 сек
@@ -164,6 +220,7 @@ export const simulatedStocksDataset = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const getRealtimeDatasets = () => ({
+    currenciesInRub: currenciesInRubDataset,
     currencyRates:   currencyRatesDataset,
     cryptoPrices:    cryptoPricesDataset,
     earthquakes:     earthquakesDataset,

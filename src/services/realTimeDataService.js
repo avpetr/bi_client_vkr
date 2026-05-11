@@ -10,6 +10,7 @@
  */
 
 import {
+    currenciesInRubFetcher,
     currencyRatesFetcher,
     cryptoPricesFetcher,
     earthquakesFetcher,
@@ -18,6 +19,7 @@ import {
 
 // Реестр: sourceId -> async () => DataPoint[]
 const adapterRegistry = {
+    currenciesInRub: currenciesInRubFetcher,
     currencyRates:   currencyRatesFetcher,
     cryptoPrices:    cryptoPricesFetcher,
     earthquakes:     earthquakesFetcher,

@@ -150,29 +150,33 @@
 }
 
 /* =======================
-   Grid Background - Hidden by default, shown during drag/resize
+   Grid Background — точная snap-сетка во время drag/resize.
+   CSS-переменные (--cell-w, --row-h, --h-margin, --v-margin, --padding)
+   устанавливаются из JS в InteractiveDashboard.jsx через ResizeObserver,
+   так что фоновая сетка точно повторяет реальные позиции react-grid-layout.
    ======================= */
 .react-grid-layout {
     background-image: none;
-    transition: background 0.2s ease;
+    transition: background-image 0.15s ease;
 }
 
-/* Show grid during drag or resize */
 .react-grid-layout.dragging-active,
 .react-grid-layout.resizing-active {
     background-image:
-        linear-gradient(rgba(25, 118, 210, 0.1) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(25, 118, 210, 0.1) 1px, transparent 1px);
-    background-size: calc(100% / 12) 60px; /* 12 columns, 60px rows */
+        linear-gradient(to right, rgba(25, 118, 210, 0.22) 0, transparent 1px),
+        linear-gradient(to bottom, rgba(25, 118, 210, 0.22) 0, transparent 1px);
+    background-size:
+        calc(var(--cell-w, 80px) + var(--h-margin, 10px))
+        calc(var(--row-h, 60px) + var(--v-margin, 10px));
+    background-position: var(--padding, 16px) var(--padding, 16px);
+    background-repeat: repeat;
 }
 
-/* Dark mode grid */
 [data-theme="dark"] .react-grid-layout.dragging-active,
 [data-theme="dark"] .react-grid-layout.resizing-active {
     background-image:
-        linear-gradient(rgba(100, 181, 246, 0.15) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(100, 181, 246, 0.15) 1px, transparent 1px);
-    background-size: calc(100% / 12) 60px;
+        linear-gradient(to right, rgba(100, 181, 246, 0.25) 0, transparent 1px),
+        linear-gradient(to bottom, rgba(100, 181, 246, 0.25) 0, transparent 1px);
 }
 
 /* =======================

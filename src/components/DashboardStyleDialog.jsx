@@ -10,6 +10,7 @@ const DashboardStyleDialog = ({ open, onClose, currentStyle, onSave }) => {
     const [style, setStyle] = useState({
         backgroundColor: currentStyle?.backgroundColor || '#f4f6f8',
         gridGap: currentStyle?.gridGap || 16,
+        gridCols: currentStyle?.gridCols ?? 12,
         horizontalMargin: currentStyle?.horizontalMargin || 10,
         verticalMargin: currentStyle?.verticalMargin || 10,
         widgetElevation: currentStyle?.widgetElevation || 3,
@@ -35,6 +36,7 @@ const DashboardStyleDialog = ({ open, onClose, currentStyle, onSave }) => {
         setStyle({
             backgroundColor: '#f4f6f8',
             gridGap: 16,
+            gridCols: 12,
             horizontalMargin: 10,
             verticalMargin: 10,
             widgetElevation: 3,
@@ -68,6 +70,22 @@ const DashboardStyleDialog = ({ open, onClose, currentStyle, onSave }) => {
                         </Typography>
                         
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                            <FormControl fullWidth>
+                                <InputLabel>Делений сетки (колонок)</InputLabel>
+                                <Select
+                                    value={style.gridCols}
+                                    label="Делений сетки (колонок)"
+                                    onChange={(e) => handleChange('gridCols', e.target.value)}
+                                >
+                                    {[4, 6, 8, 12, 16, 24].map(n => (
+                                        <MenuItem key={n} value={n}>{n} колонок</MenuItem>
+                                    ))}
+                                </Select>
+                                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, px: 1.5 }}>
+                                    Больше колонок = тоньше шаг snap при изменении размера
+                                </Typography>
+                            </FormControl>
+
                             <TextField
                                 label="Цвет фона дашборда"
                                 type="color"

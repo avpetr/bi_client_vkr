@@ -59,9 +59,7 @@
         margin: 0 !important;
     }
 
-    .react-grid-item {
-        min-height: 180px !important;
-    }
+    /* min-height removed: ломало grid sizing — высоту задаёт react-grid-layout по h*rowHeight */
 
     /* Widget cards */
     .widget-card {
@@ -173,9 +171,7 @@
         padding: 6px 12px !important;
     }
 
-    .react-grid-item {
-        min-height: 220px !important;
-    }
+    /* min-height removed: высоту задаёт react-grid-layout */
 
     .recharts-wrapper {
         font-size: 11px !important;
@@ -210,9 +206,7 @@
         padding: 16px;
     }
 
-    .react-grid-item {
-        min-height: 250px;
-    }
+    /* min-height removed: высоту задаёт react-grid-layout */
 }
 
 /* =======================
@@ -225,9 +219,7 @@
         margin: 0 auto;
     }
 
-    .react-grid-item {
-        min-height: 280px;
-    }
+    /* min-height removed: высоту задаёт react-grid-layout */
 }
 
 /* =======================
@@ -243,9 +235,7 @@
         padding: 6px 12px !important;
     }
 
-    .react-grid-item {
-        min-height: 160px !important;
-    }
+    /* min-height removed: высоту задаёт react-grid-layout */
 }
 
 /* =======================
@@ -256,9 +246,7 @@
         padding: 6px 12px !important;
     }
 
-    .react-grid-item {
-        min-height: 150px !important;
-    }
+    /* min-height removed: высоту задаёт react-grid-layout */
 
     .MuiDialog-paper {
         max-height: 92vh !important;

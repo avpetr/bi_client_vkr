@@ -199,6 +199,8 @@ const AdvancedWidgetSettings = ({ open, onClose, config, onSave }) => {
     const [settings, setSettings] = useState({
         datasetId:         config.datasetId || 'salesPerformance',
         dataKeys:          config.dataKeys  || ['sales'],
+        xAxisKey:          config.xAxisKey  || null,    // null → берётся из dataset.xAxisKey
+        sortByX:           config.sortByX   ?? false,    // сортировать по X (для временных рядов)
         showLegend:        config.settings?.showLegend        ?? true,
         showGrid:          config.settings?.showGrid          ?? true,
         showTooltip:       config.settings?.showTooltip       ?? true,
@@ -219,6 +221,7 @@ const AdvancedWidgetSettings = ({ open, onClose, config, onSave }) => {
 
     const datasets        = getDatasetOptions();
     const datasetMetrics  = getMetricsForDataset(settings.datasetId);
+    const datasetFull     = getDatasetById(settings.datasetId);
 
     // All selectable metrics = dataset metrics + calculated metrics
     const allMetrics = [
@@ -230,6 +233,22 @@ const AdvancedWidgetSettings = ({ open, onClose, config, onSave }) => {
             isCalculated: true,
         })),
     ];
+
+    // Для таблицы серии = ВСЕ колонки датасета (вкл. xAxisKey) + вычисляемые,
+    // чтобы можно было переименовать каждый заголовок.
+    const tableColumns = (() => {
+        const firstRow = datasetFull?.data?.[0];
+        if (!firstRow) return [];
+        return Object.keys(firstRow).map(key => {
+            const metric = allMetrics.find(m => m.key === key);
+            return {
+                key,
+                label: metric?.label || key,
+                color: metric?.color,
+                isCalculated: metric?.isCalculated,
+            };
+        });
+    })();
 
     const handleChange = (field, value) =>
         setSettings(prev => ({ ...prev, [field]: value }));
@@ -305,6 +324,8 @@ const AdvancedWidgetSettings = ({ open, onClose, config, onSave }) => {
             ...config,
             datasetId:         settings.datasetId,
             dataKeys:          settings.dataKeys,
+            xAxisKey:          settings.xAxisKey,
+            sortByX:           settings.sortByX,
             calculatedMetrics: settings.calculatedMetrics,
             settings: {
                 showLegend:        settings.showLegend,
@@ -377,6 +398,58 @@ const AdvancedWidgetSettings = ({ open, onClose, config, onSave }) => {
                             </Select>
                         </FormControl>
 
+                        {/* Выбор колонки оси X — только для типов с осями */}
+                        {!['pie', 'card', 'table', 'scatter'].includes(config.type) && (() => {
+                            const allColumns = (() => {
+                                const firstRow = datasetFull?.data?.[0];
+                                if (!firstRow) return [];
+                                return Object.keys(firstRow);
+                            })();
+                            if (allColumns.length === 0) return null;
+                            const currentX = settings.xAxisKey || datasetFull?.xAxisKey || allColumns[0];
+                            return (
+                                <Box>
+                                    <FormControl fullWidth size="small">
+                                        <InputLabel>Колонка для оси X</InputLabel>
+                                        <Select
+                                            value={currentX}
+                                            label="Колонка для оси X"
+                                            onChange={e => handleChange('xAxisKey', e.target.value)}
+                                        >
+                                            {allColumns.map(col => {
+                                                const firstRow = datasetFull?.data?.[0];
+                                                const isNumber = typeof firstRow?.[col] === 'number';
+                                                return (
+                                                    <MenuItem key={col} value={col}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            <span style={{ fontFamily: 'monospace' }}>{col}</span>
+                                                            <Chip
+                                                                label={isNumber ? '№' : 'A'}
+                                                                size="small"
+                                                                color={isNumber ? 'primary' : 'default'}
+                                                                sx={{ fontSize: '0.6rem', height: 16, minWidth: 28 }}
+                                                            />
+                                                        </Box>
+                                                    </MenuItem>
+                                                );
+                                            })}
+                                        </Select>
+                                    </FormControl>
+                                    <FormControlLabel
+                                        sx={{ mt: 1 }}
+                                        control={
+                                            <Switch
+                                                size="small"
+                                                checked={settings.sortByX}
+                                                onChange={e => handleChange('sortByX', e.target.checked)}
+                                            />
+                                        }
+                                        label={<Typography variant="caption">Сортировать данные по оси X (для временных рядов)</Typography>}
+                                    />
+                                </Box>
+                            );
+                        })()}
+
                         <Typography variant="subtitle2">Выберите метрики:</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                             {allMetrics.map(metric => (
@@ -403,90 +476,125 @@ const AdvancedWidgetSettings = ({ open, onClose, config, onSave }) => {
                     </Box>
                 )}
 
-                {/* ── Tab 1: Series config (rename, color, order) ── */}
+                {/* ── Tab 1: Series config — для таблицы: переименование колонок ── */}
                 {tabValue === 1 && (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <Typography variant="body2" color="text.secondary">
-                            Переименуйте, измените цвет и порядок серий
-                        </Typography>
-
-                        {settings.dataKeys.length === 0 ? (
-                            <Typography variant="body2" align="center" color="text.secondary">
-                                Выберите метрики на вкладке «Данные»
-                            </Typography>
+                        {config.type === 'table' ? (
+                            <>
+                                <Typography variant="body2" color="text.secondary">
+                                    Переименуйте заголовки колонок таблицы
+                                </Typography>
+                                {tableColumns.length === 0 ? (
+                                    <Typography variant="body2" align="center" color="text.secondary">
+                                        Нет данных для отображения колонок
+                                    </Typography>
+                                ) : (
+                                    tableColumns.map(col => {
+                                        const customLabel = settings.seriesConfig[col.key]?.label;
+                                        return (
+                                            <Paper key={col.key} variant="outlined" sx={{ p: 1.5 }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                    <Box sx={{ minWidth: 0, flex: '0 0 auto' }}>
+                                                        <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', display: 'block' }}>
+                                                            {col.key}
+                                                        </Typography>
+                                                        {col.isCalculated && (
+                                                            <Chip label="вычисл." size="small" color="secondary" sx={{ fontSize: '0.6rem', height: 16 }} />
+                                                        )}
+                                                    </Box>
+                                                    <TextField
+                                                        label="Заголовок в таблице" size="small" sx={{ flex: 1 }}
+                                                        value={customLabel ?? col.label}
+                                                        onChange={e => handleSeriesConfigChange(col.key, 'label', e.target.value)}
+                                                        placeholder={col.label}
+                                                    />
+                                                </Box>
+                                            </Paper>
+                                        );
+                                    })
+                                )}
+                            </>
                         ) : (
-                            settings.dataKeys.map((metricKey, index) => {
-                                const sc = getSeriesConfig(metricKey);
-                                return (
-                                    <Paper key={metricKey} variant="outlined" sx={{ p: 2 }}>
-                                        {/* Header row */}
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: sc.color || '#8884d8' }} />
-                                                <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-                                                    {metricKey}
-                                                </Typography>
-                                            </Box>
-                                            <Box>
-                                                <IconButton size="small" onClick={() => handleMoveMetric(metricKey, 'up')}  disabled={index === 0}>
-                                                    <ArrowUpwardIcon fontSize="small" />
-                                                </IconButton>
-                                                <IconButton size="small" onClick={() => handleMoveMetric(metricKey, 'down')} disabled={index === settings.dataKeys.length - 1}>
-                                                    <ArrowDownwardIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </Box>
+                            <>
+                                <Typography variant="body2" color="text.secondary">
+                                    Переименуйте, измените цвет и порядок серий
+                                </Typography>
 
-                                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 2, alignItems: 'end' }}>
-                                            {/* Rename */}
-                                            <TextField
-                                                label="Название в легенде" size="small" fullWidth
-                                                value={sc.label || metricKey}
-                                                onChange={e => handleSeriesConfigChange(metricKey, 'label', e.target.value)}
-                                            />
-                                            {/* Color */}
-                                            <Box>
-                                                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.3 }}>
-                                                    Цвет
-                                                </Typography>
-                                                <input
-                                                    type="color"
-                                                    value={sc.color || '#8884d8'}
-                                                    onChange={e => handleSeriesConfigChange(metricKey, 'color', e.target.value)}
-                                                    style={{ width: 48, height: 36, cursor: 'pointer', border: 'none', padding: 0, borderRadius: 4 }}
+                                {settings.dataKeys.length === 0 ? (
+                                    <Typography variant="body2" align="center" color="text.secondary">
+                                        Выберите метрики на вкладке «Данные»
+                                    </Typography>
+                                ) : (
+                                    settings.dataKeys.map((metricKey, index) => {
+                                        const sc = getSeriesConfig(metricKey);
+                                        return (
+                                            <Paper key={metricKey} variant="outlined" sx={{ p: 2 }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: sc.color || '#8884d8' }} />
+                                                        <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                                                            {metricKey}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Box>
+                                                        <IconButton size="small" onClick={() => handleMoveMetric(metricKey, 'up')}  disabled={index === 0}>
+                                                            <ArrowUpwardIcon fontSize="small" />
+                                                        </IconButton>
+                                                        <IconButton size="small" onClick={() => handleMoveMetric(metricKey, 'down')} disabled={index === settings.dataKeys.length - 1}>
+                                                            <ArrowDownwardIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Box>
+                                                </Box>
+
+                                                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 2, alignItems: 'end' }}>
+                                                    <TextField
+                                                        label="Название в легенде" size="small" fullWidth
+                                                        value={sc.label || metricKey}
+                                                        onChange={e => handleSeriesConfigChange(metricKey, 'label', e.target.value)}
+                                                    />
+                                                    <Box>
+                                                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.3 }}>
+                                                            Цвет
+                                                        </Typography>
+                                                        <input
+                                                            type="color"
+                                                            value={sc.color || '#8884d8'}
+                                                            onChange={e => handleSeriesConfigChange(metricKey, 'color', e.target.value)}
+                                                            style={{ width: 48, height: 36, cursor: 'pointer', border: 'none', padding: 0, borderRadius: 4 }}
+                                                        />
+                                                    </Box>
+                                                </Box>
+
+                                                {config.type === 'composed' && (
+                                                    <FormControl size="small" fullWidth sx={{ mt: 2 }}>
+                                                        <InputLabel>Тип графика</InputLabel>
+                                                        <Select
+                                                            value={sc.chartType || 'bar'} label="Тип графика"
+                                                            onChange={e => handleSeriesConfigChange(metricKey, 'chartType', e.target.value)}
+                                                        >
+                                                            <MenuItem value="bar">Столбцы</MenuItem>
+                                                            <MenuItem value="line">Линия</MenuItem>
+                                                            <MenuItem value="area">Область</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                )}
+
+                                                <FormControlLabel
+                                                    sx={{ mt: 1 }}
+                                                    control={
+                                                        <Switch
+                                                            size="small"
+                                                            checked={sc.showDataLabels ?? false}
+                                                            onChange={e => handleSeriesConfigChange(metricKey, 'showDataLabels', e.target.checked)}
+                                                        />
+                                                    }
+                                                    label="Подписи значений"
                                                 />
-                                            </Box>
-                                        </Box>
-
-                                        {/* Chart type (composed only) */}
-                                        {config.type === 'composed' && (
-                                            <FormControl size="small" fullWidth sx={{ mt: 2 }}>
-                                                <InputLabel>Тип графика</InputLabel>
-                                                <Select
-                                                    value={sc.chartType || 'bar'} label="Тип графика"
-                                                    onChange={e => handleSeriesConfigChange(metricKey, 'chartType', e.target.value)}
-                                                >
-                                                    <MenuItem value="bar">Столбцы</MenuItem>
-                                                    <MenuItem value="line">Линия</MenuItem>
-                                                    <MenuItem value="area">Область</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        )}
-
-                                        <FormControlLabel
-                                            sx={{ mt: 1 }}
-                                            control={
-                                                <Switch
-                                                    size="small"
-                                                    checked={sc.showDataLabels ?? false}
-                                                    onChange={e => handleSeriesConfigChange(metricKey, 'showDataLabels', e.target.checked)}
-                                                />
-                                            }
-                                            label="Подписи значений"
-                                        />
-                                    </Paper>
-                                );
-                            })
+                                            </Paper>
+                                        );
+                                    })
+                                )}
+                            </>
                         )}
                     </Box>
                 )}

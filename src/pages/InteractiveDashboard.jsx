@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
 import {
     Container, Button, Box, Typography, Paper, Chip,
@@ -123,14 +123,78 @@ const InteractiveDashboard = () => {
 
     // Grid interaction state
     const [isDragging, setIsDragging] = useState(false);
-    const [isResizing, setIsResizing] = useState(false);
+    const [resizingId, setResizingId] = useState(null); // id виджета, размеры которого сейчас меняют
+    const isResizing = resizingId !== null;
+
+    // Ref на обёртку сетки + ResizeObserver для синхронизации CSS-переменных
+    // с реальными параметрами react-grid-layout (чтобы фоновая сетка совпадала)
+    const gridWrapperRef   = useRef(null);
+    const updateGridVarsRef = useRef(null);
+    useEffect(() => {
+        const wrapper = gridWrapperRef.current;
+        if (!wrapper) return;
+
+        const cols    = isMobile ? 2  : (dashboardStyle.gridCols ?? 12);
+        const rowH    = isMobile ? 80 : 60;
+        const hMargin = isMobile ? 6  : (dashboardStyle.horizontalMargin ?? 10);
+        const vMargin = isMobile ? 6  : (dashboardStyle.verticalMargin   ?? 10);
+        const padding = isMobile ? 4  : 16;
+
+        const updateVars = () => {
+            const grid = wrapper.querySelector('.react-grid-layout');
+            if (!grid) return;
+            const w = grid.clientWidth;
+            if (!w) return;
+            const cellW = (w - 2 * padding - (cols - 1) * hMargin) / cols;
+            grid.style.setProperty('--cell-w',   `${cellW}px`);
+            grid.style.setProperty('--row-h',    `${rowH}px`);
+            grid.style.setProperty('--h-margin', `${hMargin}px`);
+            grid.style.setProperty('--v-margin', `${vMargin}px`);
+            grid.style.setProperty('--padding',  `${padding}px`);
+        };
+
+        updateGridVarsRef.current = updateVars;
+        // несколько попыток — react-grid-layout рендерится не сразу
+        updateVars();
+        const t1 = setTimeout(updateVars, 0);
+        const t2 = setTimeout(updateVars, 100);
+
+        const ro = new ResizeObserver(updateVars);
+        ro.observe(wrapper);
+        return () => {
+            ro.disconnect();
+            clearTimeout(t1);
+            clearTimeout(t2);
+        };
+    }, [isMobile, dashboardStyle.gridCols, dashboardStyle.horizontalMargin, dashboardStyle.verticalMargin, widgets.length]);
+
+    // Нормализуем layout: задаём минимальные размеры по типу виджета
+    const normalizeLayouts = (rawLayouts, widgetsArr) => {
+        if (!rawLayouts) return { lg: [] };
+        const typeByI = Object.fromEntries((widgetsArr || []).map(w => [w.i, w.type]));
+        const normalizeItem = (item) => {
+            const t = typeByI[item.i];
+            const defMinH = t === 'card' ? 2 : 3;
+            const defMinW = 2;
+            return {
+                ...item,
+                minH: item.minH ?? defMinH,
+                minW: item.minW ?? defMinW,
+            };
+        };
+        const out = {};
+        for (const bp of Object.keys(rawLayouts)) {
+            out[bp] = (rawLayouts[bp] || []).map(normalizeItem);
+        }
+        return out;
+    };
 
     // Load dashboard when currentDashboardId changes
     useEffect(() => {
         const loadDashboard = () => {
             const dashboard = getDashboardById(currentDashboardId);
             if (dashboard) {
-                setLayouts(dashboard.layouts || { lg: [] });
+                setLayouts(normalizeLayouts(dashboard.layouts || { lg: [] }, dashboard.widgets));
                 setWidgets(dashboard.widgets || []);
                 setFilters(dashboard.filters || {});
                 setDashboardStyle(dashboard.style || {});
@@ -234,62 +298,118 @@ const InteractiveDashboard = () => {
         return newDashboard;
     };
 
-    // Load example dashboard
+    // Load example dashboard — связная история «Анализ продаж за год»
     const handleLoadExample = () => {
+        // ── Уровень 1: ключевые цифры (KPI) ─────────────────────────────────
+        const kpiId       = uuidv4();
+        // ── Уровень 2: динамика — как менялись показатели во времени ───────
+        const trendId     = uuidv4();
+        const breakdownId = uuidv4();
+        // ── Уровень 3: разрезы — кто, где, откуда ──────────────────────────
+        const regionsId   = uuidv4();
+        const usersId     = uuidv4();
+        // ── Уровень 4: финансы + источники трафика ─────────────────────────
+        const financialId = uuidv4();
+        const trafficId   = uuidv4();
+        // ── Уровень 5: детальная таблица + real-time курсы валют ──────────
+        const tableId     = uuidv4();
+        const currencyId  = uuidv4();
+
         const exampleWidgets = [
+            // KPI: годовые итоги
             {
-                i: uuidv4(),
-                title: 'Продажи по месяцам',
+                i: kpiId,
+                title: 'Итоги за год',
+                type: 'card',
+                datasetId: 'salesPerformance',
+                dataKeys: ['revenue', 'sales', 'profit', 'expenses'],
+                settings: { cardAggregate: 'sum' },
+            },
+            // Динамика
+            {
+                i: trendId,
+                title: 'Динамика продаж и прибыли по месяцам',
                 type: 'line',
                 datasetId: 'salesPerformance',
-                dataKeys: ['sales', 'profit']
+                dataKeys: ['sales', 'profit', 'revenue'],
+                settings: { showDataLabels: true },
             },
             {
-                i: uuidv4(),
-                title: 'Категории товаров',
+                i: breakdownId,
+                title: 'Структура продаж по категориям',
                 type: 'pie',
                 datasetId: 'productCategories',
-                dataKeys: ['value']
+                dataKeys: ['value'],
             },
+            // Разрезы
             {
-                i: uuidv4(),
-                title: 'Активные пользователи',
-                type: 'area',
-                datasetId: 'userAnalytics',
-                dataKeys: ['activeUsers', 'newUsers']
-            },
-            {
-                i: uuidv4(),
-                title: 'Региональные продажи',
+                i: regionsId,
+                title: 'Продажи по регионам',
                 type: 'bar',
                 datasetId: 'regionalSales',
-                dataKeys: ['sales', 'customers']
+                dataKeys: ['sales', 'customers'],
             },
             {
-                i: uuidv4(),
-                title: 'Финансовые показатели',
+                i: usersId,
+                title: 'Рост аудитории',
+                type: 'area',
+                datasetId: 'userAnalytics',
+                dataKeys: ['activeUsers', 'newUsers'],
+            },
+            // Финансы и трафик
+            {
+                i: financialId,
+                title: 'Квартальные финансовые показатели',
                 type: 'composed',
                 datasetId: 'financialMetrics',
-                dataKeys: ['revenue', 'costs', 'profit']
+                dataKeys: ['revenue', 'costs', 'profit'],
             },
             {
-                i: uuidv4(),
+                i: trafficId,
                 title: 'Источники трафика',
                 type: 'bar',
                 datasetId: 'trafficSources',
-                dataKeys: ['visitors', 'bounceRate']
-            }
+                dataKeys: ['visitors', 'bounceRate'],
+            },
+            // Таблица с деталями
+            {
+                i: tableId,
+                title: 'Детальные данные по месяцам',
+                type: 'table',
+                datasetId: 'salesPerformance',
+                dataKeys: [],
+            },
+            // Real-time таблица курсов валют к рублю
+            {
+                i: currencyId,
+                title: 'Курсы валют к рублю (live)',
+                type: 'table',
+                datasetId: 'currenciesInRub',
+                dataKeys: [],
+            },
         ];
+
+        const COMMON_CHART = { minW: 2, minH: 3 };
+        const COMMON_CARD  = { minW: 2, minH: 2 };
+        const COMMON_TABLE = { minW: 2, minH: 3 };
 
         const exampleLayouts = {
             lg: [
-                { i: exampleWidgets[0].i, x: 0, y: 0, w: 6, h: 4 },
-                { i: exampleWidgets[1].i, x: 6, y: 0, w: 6, h: 4 },
-                { i: exampleWidgets[2].i, x: 0, y: 4, w: 6, h: 4 },
-                { i: exampleWidgets[3].i, x: 6, y: 4, w: 6, h: 4 },
-                { i: exampleWidgets[4].i, x: 0, y: 8, w: 8, h: 4 },
-                { i: exampleWidgets[5].i, x: 8, y: 8, w: 4, h: 4 }
-            ]
+                // Ряд 1: KPI полной шириной — низкие тесные карточки
+                { i: kpiId,       x: 0,  y: 0,  w: 12, h: 2, ...COMMON_CARD },
+                // Ряд 2: динамика трендов и pie-разбивка
+                { i: trendId,     x: 0,  y: 2,  w: 8,  h: 4, ...COMMON_CHART },
+                { i: breakdownId, x: 8,  y: 2,  w: 4,  h: 4, ...COMMON_CHART },
+                // Ряд 3: регионы и пользователи
+                { i: regionsId,   x: 0,  y: 6,  w: 6,  h: 4, ...COMMON_CHART },
+                { i: usersId,     x: 6,  y: 6,  w: 6,  h: 4, ...COMMON_CHART },
+                // Ряд 4: финансы и трафик
+                { i: financialId, x: 0,  y: 10, w: 8,  h: 4, ...COMMON_CHART },
+                { i: trafficId,   x: 8,  y: 10, w: 4,  h: 4, ...COMMON_CHART },
+                // Ряд 5: таблица деталей + live курсы валют
+                { i: tableId,     x: 0,  y: 14, w: 8,  h: 5, ...COMMON_TABLE },
+                { i: currencyId,  x: 8,  y: 14, w: 4,  h: 5, ...COMMON_TABLE },
+            ],
         };
 
         setWidgets(exampleWidgets);
@@ -311,13 +431,19 @@ const InteractiveDashboard = () => {
     const handleAddWidget = (config) => {
         const newId = uuidv4();
 
-        // Создаем элемент сетки
+        // Минимальные размеры (в ячейках сетки) по типу виджета
+        const isCard  = config.type === 'card';
+        const isTable = config.type === 'table';
+        const minH = isCard ? 2 : isTable ? 3 : 3;
+        const minW = isCard ? 2 : 2;
+
         const newLayoutItem = {
             i: newId,
-            x: (widgets.length * 4) % 12, // Простое позиционирование
-            y: Infinity, // Добавляет вниз
-            w: config.type === 'pie' ? 4 : 6, // Pie charts are smaller
-            h: 4
+            x: (widgets.length * 4) % 12,
+            y: Infinity,
+            w: isCard ? 6 : isTable ? 12 : (config.type === 'pie' ? 4 : 6),
+            h: isCard ? 3 : isTable ? 5 : 4,
+            minW, minH,
         };
 
         // Сохраняем конфиг (что рисовать)
@@ -371,20 +497,16 @@ const InteractiveDashboard = () => {
                 />
             )}
 
-            {/* Main Content */}
+            {/* Main Content — persistent Drawer уже занимает flex-слот слева, marginLeft не нужен */}
             <Box
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    marginLeft: {
-                        xs: 0,
-                        md: canEdit() && isFilterSidebarOpen ? `${SIDEBAR_WIDTH}px` : 0
-                    },
                     minHeight: '100vh',
                     display: 'flex',
                     flexDirection: 'column',
                     width: '100%',
-                    maxWidth: '100vw',
+                    minWidth: 0,
                     overflow: 'hidden'
                 }}
             >
@@ -573,6 +695,7 @@ const InteractiveDashboard = () => {
 
                     {/* Сетка Drag-and-Drop */}
                     <Paper
+                        ref={gridWrapperRef}
                         sx={{
                             bgcolor: dashboardStyle.backgroundColor || 'background.default',
                             minHeight: 'calc(100vh - 180px)',
@@ -614,16 +737,23 @@ const InteractiveDashboard = () => {
                             className={`layout ${isDragging ? 'dragging-active' : ''} ${isResizing ? 'resizing-active' : ''}`}
                             layouts={layouts}
                             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-                            cols={{ lg: 12, md: 12, sm: 6, xs: 2, xxs: 2 }}
+                            cols={{
+                                lg: dashboardStyle.gridCols ?? 12,
+                                md: dashboardStyle.gridCols ?? 12,
+                                sm: 6, xs: 2, xxs: 2,
+                            }}
                             rowHeight={isMobile ? 80 : 60}
                             margin={isMobile ? [6, 6] : [dashboardStyle.horizontalMargin || 10, dashboardStyle.verticalMargin || 10]}
                             containerPadding={isMobile ? [4, 4] : [16, 16]}
                             draggableHandle=".grid-drag-handle"
                             onLayoutChange={onLayoutChange}
-                            onDragStart={() => setIsDragging(true)}
+                            onDragStart={() => { setIsDragging(true); updateGridVarsRef.current?.(); }}
                             onDragStop={() => setIsDragging(false)}
-                            onResizeStart={() => setIsResizing(true)}
-                            onResizeStop={() => setIsResizing(false)}
+                            onResizeStart={(layout, oldItem, newItem) => {
+                                setResizingId(newItem.i);
+                                updateGridVarsRef.current?.();
+                            }}
+                            onResizeStop={() => setResizingId(null)}
                             compactType="vertical"
                             preventCollision={false}
                             isDraggable={true}
@@ -641,6 +771,8 @@ const InteractiveDashboard = () => {
                                 >
                                     <SmartWidget
                                         config={widget}
+                                        filters={filters}
+                                        isResizing={resizingId === widget.i}
                                         onDelete={canDelete() ? handleRemoveWidget : null}
                                         onUpdate={canConfigureWidgets() ? handleUpdateWidget : null}
                                     />

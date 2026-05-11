@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
     Drawer, Box, Typography, IconButton, Button, TextField,
-    FormControl, InputLabel, Select, MenuItem, Divider, Chip, 
+    FormControl, InputLabel, Select, MenuItem, Divider, Chip,
     List, Paper, Tabs, Tab, Checkbox, FormGroup, FormControlLabel,
-    Alert, Stack
+    Alert, Stack, useMediaQuery, useTheme
 } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
@@ -11,8 +11,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DatasetIcon from '@mui/icons-material/Dataset';
 import { getDatasetOptions, getDataById } from '../services/mockDatasets';
+import { countWidgetsAffected } from '../services/filterApplicator';
 
-const SIDEBAR_WIDTH = 380;
+const SIDEBAR_WIDTH = 320;
 
 /**
  * Advanced Column-based Filter Sidebar for BI Dashboard
@@ -24,6 +25,8 @@ const SIDEBAR_WIDTH = 380;
  */
 const FilterSidebar = ({ open, onClose, filters, onChange, onApply, widgets }) => {
     const [tabValue, setTabValue] = useState(0);
+    const muiTheme = useTheme();
+    const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
     
     // Filter creation state
     const [selectedDataset, setSelectedDataset] = useState('');
@@ -219,22 +222,19 @@ const FilterSidebar = ({ open, onClose, filters, onChange, onApply, widgets }) =
             anchor="left"
             open={open}
             onClose={onClose}
-            variant={{
-                xs: 'temporary', // Overlay on mobile
-                md: 'persistent'  // Push content on desktop
-            }}
+            variant={isMobile ? 'temporary' : 'persistent'}
             sx={{
-                width: SIDEBAR_WIDTH,
+                width: open && !isMobile ? SIDEBAR_WIDTH : 0,
                 flexShrink: 0,
                 '& .MuiDrawer-paper': {
-                    width: { xs: '90vw', sm: '400px', md: SIDEBAR_WIDTH },
+                    width: isMobile ? '85vw' : SIDEBAR_WIDTH,
                     maxWidth: SIDEBAR_WIDTH,
                     boxSizing: 'border-box',
                     mt: { xs: '56px', sm: '64px' },
                     height: { xs: 'calc(100vh - 56px)', sm: 'calc(100vh - 64px)' },
-                    borderRight: '2px solid',
+                    borderRight: '1px solid',
                     borderColor: 'divider',
-                    bgcolor: 'background.default'
+                    bgcolor: 'background.paper',
                 },
             }}
         >
@@ -310,9 +310,16 @@ const FilterSidebar = ({ open, onClose, filters, onChange, onApply, widgets }) =
                                                         color="primary"
                                                         sx={{ mb: 1 }}
                                                     />
-                                                    <Typography variant="caption" display="block" color="textSecondary">
-                                                        {filter.columns.length} колонка{filter.columns.length > 1 ? 'и' : ''}
-                                                    </Typography>
+                                                    {(() => {
+                                                        const n = countWidgetsAffected(filter, widgets);
+                                                        return (
+                                                            <Typography variant="caption" display="block" color={n > 0 ? 'success.main' : 'text.disabled'} sx={{ fontWeight: 600 }}>
+                                                                {n > 0
+                                                                    ? `▸ Применяется к ${n} виджет${n === 1 ? 'у' : (n < 5 ? 'ам' : 'ам')}`
+                                                                    : '▸ Нет виджетов с этим датасетом'}
+                                                            </Typography>
+                                                        );
+                                                    })()}
                                                 </Box>
                                                 <IconButton
                                                     size="small"
@@ -533,6 +540,9 @@ const FilterSidebar = ({ open, onClose, filters, onChange, onApply, widgets }) =
                 {/* Action Buttons */}
                 {activeFiltersCount > 0 && (
                     <Stack spacing={1}>
+                        <Alert severity="success" sx={{ py: 0.5 }}>
+                            Фильтры применяются автоматически
+                        </Alert>
                         <Button
                             variant="outlined"
                             onClick={handleClearAll}
@@ -540,19 +550,8 @@ const FilterSidebar = ({ open, onClose, filters, onChange, onApply, widgets }) =
                             color="error"
                             startIcon={<DeleteIcon />}
                         >
-                            Очистить все
+                            Очистить все ({activeFiltersCount})
                         </Button>
-                        {onApply && (
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={onApply}
-                                fullWidth
-                                size="large"
-                            >
-                                Применить ({activeFiltersCount})
-                            </Button>
-                        )}
                     </Stack>
                 )}
             </Box>
